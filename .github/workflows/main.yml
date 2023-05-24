@@ -1,0 +1,35 @@
+---
+name: Dockerised Java 'Hello World' image
+
+on:
+  push:
+    branches:
+      - 'feature/*'
+  pull_request:
+    branches:
+      - 'main'
+
+env:
+  DOCKERHUB_USERNAME: rohanshinde08
+  DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Set up JDK
+        uses: actions/setup-java@v2
+        with:
+          java-version: "11"
+          distribution: 'adopt'
+      - name: Compile Java code
+        run: javac HelloWorld.java
+      - name: Build Docker image
+        run: |
+          docker build -t ${{ env.DOCKERHUB_USERNAME }}/hello-world:${{ github.sha }} . &&
+
+          echo $DOCKERHUB_PASSWORD | docker login -u "${{ env.DOCKERHUB_USERNAME }}" --password-stdin
+
+          docker push ${{ env.DOCKERHUB_USERNAME }}/hello-world:${{ github.sha }}
